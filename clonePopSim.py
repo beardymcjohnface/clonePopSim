@@ -138,11 +138,21 @@ def wrap_dna_sequence(sequence):
     return wrapped_sequence
 
 
+def circularise_seq(s):
+    if len(s) <= 600:
+        return s
+    else:
+        first_300 = s[:300]
+        last_300 = s[-300:]
+        return s + 'N'*300 + first_300 + last_300
+
+
 def main():
     parser = argparse.ArgumentParser(description='Read in a YAML config file and a text file.')
     parser.add_argument('-c', '--config_file', nargs='?', default='config.yaml', help='The YAML config file (default: config.yaml)')
     parser.add_argument('-f', '--fasta_file', help='Fasta file')
     parser.add_argument('-d', '--genomes_dir', help='directory of genomes')
+    parser.add_argument('--circ', action='store_true', help='Circular genome support for simulating reads')
     args = parser.parse_args()
 
     if args.config_file == 'config.yaml':
@@ -159,6 +169,8 @@ def main():
     for id, seq in seqs.items():
         for i in range(0,random.randint(config.mutate.min, config.mutate.max)):
             mutated_seq = mutate_seq(seq, config)
+            if args.circ:
+                mutated_seq = circularise_seq(mutated_seq)
             mutated_seq = wrap_dna_sequence(mutated_seq)
             sys.stdout.write(f'>{id}.{i}\n{mutated_seq}')
             seq = mutated_seq.replace('\n','')
