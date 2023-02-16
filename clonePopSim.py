@@ -153,7 +153,7 @@ def circularise_seq(s):
     else:
         first_300 = s[:300]
         last_300 = s[-300:]
-        return s + 'N'*300 + first_300 + last_300
+        return s + 'N'*300 + last_300 + first_300
 
 
 def main():
