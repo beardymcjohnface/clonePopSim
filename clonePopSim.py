@@ -6,6 +6,7 @@ import os
 import sys
 import yaml
 import attrmap as ap
+import gzip
 
 
 def sectorise_genome(input_string, min_length=1, max_length=3):
@@ -58,20 +59,24 @@ def invert_sequence(input_string):
 
 
 def parse_fasta(file):
-    with open(file, 'r') as f:
-        sequences = {}
-        header = ''
-        sequence = ''
-        for line in f:
-            line = line.strip()
-            if line.startswith('>'):
-                if header:
-                    sequences[header] = sequence
-                header = line[1:]
-                sequence = ''
-            else:
-                sequence += line
-        sequences[header] = sequence
+    sequences = {}
+    header = ''
+    sequence = ''
+    if file.endswith('.gz'):
+        f = gzip.open(file, 'rt')
+    else:
+        f = open(file, 'r')
+    for line in f:
+        line = line.strip()
+        if line.startswith('>'):
+            if header:
+                sequences[header] = sequence
+            header = line[1:]
+            sequence = ''
+        else:
+            sequence += line
+    f.close()
+    sequences[header] = sequence
     return sequences
 
 
@@ -87,11 +92,15 @@ def read_random_sequence(folder, min_length, max_length):
         return None
     file = random.choice(files)
     seq = str()
-    with open(os.path.join(folder, file), 'r') as f:
-        for line in f:
-            if line.startswith('>'):
-                continue
-            seq = seq + line.strip()
+    if file.endswith('.gz'):
+        f = gzip.open(os.path.join(folder, file), 'rt')
+    else:
+        f = open(os.path.join(folder, file), 'r')
+    for line in f:
+        if line.startswith('>'):
+            continue
+        seq = seq + line.strip()
+    f.close()
     split_length = random.randint(min_length, min(max_length, len(seq)))
     start = random.randint(0, len(seq) - split_length)
     return seq[start:start + split_length]
@@ -170,9 +179,12 @@ def main():
         for i in range(0,random.randint(config.mutate.min, config.mutate.max)):
             mutated_seq = mutate_seq(seq, config)
             if args.circ:
-                mutated_seq = circularise_seq(mutated_seq)
-            mutated_seq = wrap_dna_sequence(mutated_seq)
-            sys.stdout.write(f'>{id}.{i}\n{mutated_seq}')
+                circ_mutated_seq = circularise_seq(mutated_seq)
+                circ_mutated_seq = wrap_dna_sequence(circ_mutated_seq)
+                sys.stdout.write(f'>{id}.{i}\n{circ_mutated_seq}')
+            else:
+                mutated_seq = wrap_dna_sequence(mutated_seq)
+                sys.stdout.write(f'>{id}.{i}\n{mutated_seq}')
             seq = mutated_seq.replace('\n','')
 
 
