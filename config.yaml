@@ -1,0 +1,37 @@
+mutate:
+  min:
+    2
+  max:
+    8
+
+sectorise:
+  min_len:
+    1000
+  max_len:
+    20000
+
+ani:
+  min_snp_perc:
+    5
+  max_snp_perc:
+    10
+  min_indel_len:
+    1
+  max_indel_len:
+    20
+  min_indel_freq:
+    1
+  max_indel_freq:
+    3
+
+model:
+  snpindel:
+    50
+  insert:
+    5
+  delete:
+    5
+  invert:
+    10
+  shuffle:
+    10
